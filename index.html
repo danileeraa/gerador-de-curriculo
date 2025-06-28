@@ -223,7 +223,8 @@
             color: #666;
             font-style: italic;
         }
-        .qr-modal {
+        /* Styles for QR Modal and Preview Modal */
+        .modal {
             display: none;
             position: fixed;
             z-index: 1000;
@@ -232,17 +233,20 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0,0,0,0.4);
+            background-color: rgba(0,0,0,0.6);
             justify-content: center;
             align-items: center;
         }
-        .qr-modal-content {
+        .modal-content {
             background-color: #fefefe;
             padding: 20px;
             border-radius: 10px;
             text-align: center;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             position: relative;
+            max-width: 90%; /* For preview modal */
+            max-height: 90%;
+            overflow: auto;
         }
         .close-button {
             position: absolute;
@@ -278,20 +282,17 @@
                 display: block !important;
                 width: 100% !important;
             }
-            .form-section, .donation-section {
+            .form-section, .donation-section, .view-preview-button { /* Hide form, donation, and preview button */
                 display: none !important;
             }
-            .preview-section {
-                width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                box-shadow: none !important;
+            /* Hide modals when printing */
+            .modal {
+                display: none !important;
             }
             .resume-page {
                 box-shadow: none;
                 margin: 0;
-                /* Remove fixed padding for print, let html2pdf handle it better with margin option */
-                padding: 0;
+                padding: 30mm; /* Keep A4 margins for print */
                 page-break-after: always; /* Ensure new page for each "resume-page" */
             }
             /* Adjust elements that might cause overflow */
@@ -308,10 +309,10 @@
         <p class="mt-2 text-lg">Crie seu currículo profissional em minutos!</p>
     </header>
 
-    <main class="main-container flex flex-col lg:flex-row gap-8 w-11/12 max-w-7xl">
+    <main class="main-container flex flex-col items-center gap-8 w-11/12 max-w-7xl">
 
         <!-- Formulário de Preenchimento -->
-        <section class="form-section flex-1 bg-white p-6 rounded-lg shadow-xl border border-gray-200">
+        <section class="form-section flex-1 bg-white p-6 rounded-lg shadow-xl border border-gray-200 w-full">
             <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b-2 pb-2 border-blue-500">Preencha seus Dados</h2>
 
             <!-- Seleção de Modelo -->
@@ -478,45 +479,43 @@
                 <textarea id="habilidades" name="habilidades" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500" placeholder="Ex: JavaScript, React, Node.js, SQL, Comunicação, Trabalho em Equipe"></textarea>
             </div>
 
-            <button id="download-pdf" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg focus:outline-none focus:shadow-outline w-full text-lg transition duration-300 ease-in-out transform hover:scale-105">
+            <button id="view-preview-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg focus:outline-none focus:shadow-outline w-full text-lg transition duration-300 ease-in-out transform hover:scale-105 mt-4">
+                <i class="fas fa-eye mr-3"></i> Ver Preview do Currículo
+            </button>
+            <button id="download-pdf" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg focus:outline-none focus:shadow-outline w-full text-lg transition duration-300 ease-in-out transform hover:scale-105 mt-4">
                 <i class="fas fa-file-pdf mr-3"></i> Baixar Currículo em PDF
             </button>
         </section>
-
-        <!-- Preview do Currículo -->
-        <section class="preview-section flex-1 bg-white p-4 rounded-lg shadow-xl overflow-y-auto lg:h-[90vh] sticky top-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b-2 pb-2 border-blue-500">Preview Instantâneo</h2>
-            <div id="resume-preview" class="resume-page border border-gray-300 rounded-md">
-                <!-- Conteúdo do currículo será injetado aqui dinamicamente pelo JavaScript -->
-            </div>
-        </section>
     </main>
 
-    <!-- Seção de Doação -->
-    <section class="donation-section w-11/12 max-w-7xl bg-white p-6 rounded-lg shadow-xl border border-gray-200 mt-8 text-center">
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">Apoie Nosso Projeto!</h2>
-        <p class="text-gray-700 mb-6 text-lg">Este site é totalmente gratuito para você gerar seu currículo profissional. Se você gostou e quer nos ajudar a mantê-lo no ar e melhorá-lo, considere fazer uma doação!</p>
-        <div class="flex flex-wrap justify-center gap-4 mb-6">
-            <button class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow focus:outline-none focus:shadow-outline text-lg transition duration-300 ease-in-out transform hover:scale-105" onclick="openQrModal()">
-                <i class="fas fa-hand-holding-usd mr-2"></i> Contribuir com R$5
-            </button>
-            <button class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow focus:outline-none focus:shadow-outline text-lg transition duration-300 ease-in-out transform hover:scale-105" onclick="openQrModal()">
-                <i class="fas fa-hand-holding-usd mr-2"></i> Contribuir com R$10
-            </button>
-            <button class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow focus:outline-none focus:shadow-outline text-lg transition duration-300 ease-in-out transform hover:scale-105" onclick="openQrModal()">
-                <i class="fas fa-hand-holding-usd mr-2"></i> Doar Outro Valor
-            </button>
-        </div>
-        <p class="text-gray-600 text-sm">Qualquer valor ajuda! Agradecemos seu apoio.</p>
+    <!-- Seção de Doação (Rodapé sutil) -->
+    <section class="donation-section w-11/12 max-w-7xl bg-purple-100 p-4 rounded-lg shadow-md border border-purple-200 mt-8 text-center flex items-center justify-center space-x-4">
+        <p class="text-purple-800 text-md font-semibold">
+            Este site é gratuito! Se puder, <button onclick="openQrModal()" class="text-purple-700 underline font-bold hover:text-purple-900 focus:outline-none">contribua com uma doação</button>. Seu apoio nos ajuda a mantê-lo no ar!
+        </p>
     </section>
 
     <!-- Modal do QR Code -->
-    <div id="qr-modal" class="qr-modal">
-        <div class="qr-modal-content">
+    <div id="qr-modal" class="modal">
+        <div class="modal-content">
             <span class="close-button" onclick="closeQrModal()">&times;</span>
             <h3 class="text-xl font-bold mb-4">Escaneie para Doar</h3>
-            <img src="https://placehold.co/200x200/000000/FFFFFF?text=Seu+QR+Code+aqui" alt="QR Code para Doação" class="mx-auto my-4 rounded-lg border-2 border-gray-300 p-2">
-            <p class="text-gray-700">Por favor, substitua a imagem acima pelo seu QR Code real.</p>
+            <img src="qr.jpg" alt="QR Code para Doação" class="mx-auto my-4 rounded-lg border-2 border-gray-300 p-2 w-48 h-48 object-contain">
+            <p class="text-gray-700">Agradecemos muito sua contribuição!</p>
+        </div>
+    </div>
+
+    <!-- Modal de Preview do Currículo -->
+    <div id="preview-modal" class="modal">
+        <div class="modal-content relative">
+            <span class="close-button" onclick="closePreviewModal()">&times;</span>
+            <h3 class="text-xl font-bold mb-4">Preview do Currículo</h3>
+            <div id="modal-resume-preview" class="resume-page border border-gray-300 rounded-md shadow-lg" style="transform: scale(0.7); transform-origin: top center;">
+                <!-- Conteúdo do currículo será injetado aqui -->
+            </div>
+            <button onclick="closePreviewModal()" class="mt-6 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Fechar Preview
+            </button>
         </div>
     </div>
 
@@ -543,7 +542,9 @@
             formacaoContainer: document.getElementById('formacao-container'),
             downloadPdfBtn: document.getElementById('download-pdf'),
             qrModal: document.getElementById('qr-modal'),
-            resumePreview: document.getElementById('resume-preview'),
+            previewModal: document.getElementById('preview-modal'), // Novo modal de preview
+            modalResumePreview: document.getElementById('modal-resume-preview'), // Elemento dentro do modal de preview
+            viewPreviewBtn: document.getElementById('view-preview-btn'), // Botão para abrir o preview
             // Novos elementos para a funcionalidade Gemini API
             generateSummaryBtn: document.getElementById('generate-summary-btn'),
             loadingSpinner: document.getElementById('loading-spinner'),
@@ -729,16 +730,13 @@
         }
 
         /**
-         * Atualiza o preview do currículo com os dados do formulário e o modelo selecionado.
+         * Atualiza o conteúdo do preview do currículo com os dados do formulário e o modelo selecionado.
+         * Esta função é chamada para preencher tanto o preview principal quanto o preview no modal.
          */
-        function updatePreview() {
-            const data = getFormData();
-            const selectedTemplate = elements.templateSelect.value;
-
-            // Clear previous content and apply template-specific base class
-            elements.resumePreview.className = 'resume-page border border-gray-300 rounded-md';
-            elements.resumePreview.classList.add(`template-${selectedTemplate}`);
-            elements.resumePreview.innerHTML = '';
+        function updateResumeContent(targetElement, data, selectedTemplate) {
+            targetElement.className = 'resume-page border border-gray-300 rounded-md';
+            targetElement.classList.add(`template-${selectedTemplate}`);
+            targetElement.innerHTML = '';
 
             let contentHtml = '';
 
@@ -842,10 +840,10 @@
                     break;
             }
 
-            elements.resumePreview.innerHTML = contentHtml;
+            targetElement.innerHTML = contentHtml;
 
             // Get a fresh reference to the photo element after content is injected
-            const previewFotoElement = elements.resumePreview.querySelector('#preview-foto');
+            const previewFotoElement = targetElement.querySelector('#preview-foto');
             if (previewFotoElement) {
                 if (data.foto) {
                     previewFotoElement.src = URL.createObjectURL(data.foto);
@@ -888,14 +886,15 @@
             // Adiciona listener para remover o campo
             newSocialMediaItem.querySelector('.remove-social-media').addEventListener('click', () => {
                 newSocialMediaItem.remove();
-                updatePreview();
+                // When adding/removing social media fields, only update the modal content to avoid flickering
+                openPreviewModal();
             });
 
             // Adiciona listener para atualização do preview
-            newSocialMediaItem.querySelectorAll('input, select').forEach(input => input.addEventListener('input', updatePreview));
+            newSocialMediaItem.querySelectorAll('input, select').forEach(input => input.addEventListener('input', () => openPreviewModal()));
 
             socialMediaCount++;
-            updatePreview();
+            openPreviewModal(); // Update preview after adding
         }
 
         /**
@@ -935,10 +934,10 @@
 
             newExperienciaItem.querySelector('.remove-experiencia').addEventListener('click', () => {
                 newExperienciaItem.remove();
-                updatePreview();
+                openPreviewModal();
             });
-            newExperienciaItem.querySelectorAll('input, textarea').forEach(input => input.addEventListener('input', updatePreview));
-            updatePreview();
+            newExperienciaItem.querySelectorAll('input, textarea').forEach(input => input.addEventListener('input', () => openPreviewModal()));
+            openPreviewModal();
         }
 
         /**
@@ -976,10 +975,10 @@
 
             newFormacaoItem.querySelector('.remove-formacao').addEventListener('click', () => {
                 newFormacaoItem.remove();
-                updatePreview();
+                openPreviewModal();
             });
-            newFormacaoItem.querySelectorAll('input').forEach(input => input.addEventListener('input', updatePreview));
-            updatePreview();
+            newFormacaoItem.querySelectorAll('input').forEach(input => input.addEventListener('input', () => openPreviewModal()));
+            openPreviewModal();
         }
 
         /**
@@ -1005,7 +1004,6 @@
                 elements.generateSummaryBtn.disabled = false;
                 elements.generateSummaryText.textContent = 'Gerar Resumo ✨';
                 elements.loadingSpinner.style.display = 'none';
-                updatePreview();
                 return;
             }
 
@@ -1046,7 +1044,7 @@ ${skills || 'Nenhuma habilidade fornecida.'}`;
                 elements.generateSummaryBtn.disabled = false;
                 elements.generateSummaryText.textContent = 'Gerar Resumo ✨';
                 elements.loadingSpinner.style.display = 'none';
-                updatePreview();
+                openPreviewModal(); // Update preview after generation
             }
         }
 
@@ -1054,14 +1052,19 @@ ${skills || 'Nenhuma habilidade fornecida.'}`;
          * Gera o PDF do currículo.
          */
         function generatePdf() {
-            const element = elements.resumePreview;
-            html2pdf(element, {
+            const data = getFormData();
+            const selectedTemplate = elements.templateSelect.value;
+            // Create a temporary div to render the resume for PDF generation
+            const tempDiv = document.createElement('div');
+            updateResumeContent(tempDiv, data, selectedTemplate); // Render content into the temp div
+
+            html2pdf(tempDiv, {
                 margin: 10,
                 filename: 'curriculo.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: 'avoid-all', after: '.resume-page' } // Tenta evitar quebras de página dentro de elementos
+                pagebreak: { mode: 'avoid-all', after: '.resume-page' }
             });
         }
 
@@ -1079,13 +1082,39 @@ ${skills || 'Nenhuma habilidade fornecida.'}`;
             elements.qrModal.style.display = 'none';
         }
 
+        /**
+         * Abre o modal de Preview do Currículo.
+         */
+        function openPreviewModal() {
+            const data = getFormData();
+            const selectedTemplate = elements.templateSelect.value;
+            updateResumeContent(elements.modalResumePreview, data, selectedTemplate);
+            elements.previewModal.style.display = 'flex';
+        }
+
+        /**
+         * Fecha o modal de Preview do Currículo.
+         */
+        function closePreviewModal() {
+            elements.previewModal.style.display = 'none';
+        }
+
         // Adiciona listeners para atualização do preview em tempo real para todos os inputs e selects
         document.querySelectorAll('input, textarea, select').forEach(input => {
-            input.addEventListener('input', updatePreview);
+            // No longer directly update global preview, instead trigger preview modal if open
+            input.addEventListener('input', () => {
+                if (elements.previewModal.style.display === 'flex') {
+                    openPreviewModal(); // Only update modal if it's already open
+                }
+            });
         });
 
         // Listener específico para a seleção de template
-        elements.templateSelect.addEventListener('change', updatePreview);
+        elements.templateSelect.addEventListener('change', () => {
+            if (elements.previewModal.style.display === 'flex') {
+                openPreviewModal(); // Update modal if it's open
+            }
+        });
 
         // Listener para adicionar redes sociais
         elements.addSocialMediaBtn.addEventListener('click', addSocialMediaField);
@@ -1097,7 +1126,9 @@ ${skills || 'Nenhuma habilidade fornecida.'}`;
         // Listener para a remoção da foto
         elements.removerFotoBtn.addEventListener('click', () => {
             elements.fotoInput.value = ''; // Limpa o input de arquivo
-            updatePreview();
+            if (elements.previewModal.style.display === 'flex') {
+                openPreviewModal(); // Update modal if it's open
+            }
         });
 
         // Listener para o botão de download do PDF
@@ -1106,18 +1137,26 @@ ${skills || 'Nenhuma habilidade fornecida.'}`;
         // Listener para o botão de gerar resumo
         elements.generateSummaryBtn.addEventListener('click', generateProfessionalSummary);
 
-        // Fecha o modal se clicar fora do conteúdo
+        // Listener para o botão de ver preview do currículo
+        elements.viewPreviewBtn.addEventListener('click', openPreviewModal);
+
+        // Fecha o modal do QR Code se clicar fora do conteúdo
         elements.qrModal.addEventListener('click', (event) => {
             if (event.target === elements.qrModal) {
                 closeQrModal();
             }
         });
 
-        // Inicializa o preview ao carregar a página
-        document.addEventListener('DOMContentLoaded', updatePreview);
+        // Fecha o modal de Preview se clicar fora do conteúdo
+        elements.previewModal.addEventListener('click', (event) => {
+            if (event.target === elements.previewModal) {
+                closePreviewModal();
+            }
+        });
 
-        // Garante que o preview é atualizado quando a foto é selecionada
-        elements.fotoInput.addEventListener('change', updatePreview);
+        // Não há mais um preview inicial direto na página, apenas ao abrir o modal
+        // document.addEventListener('DOMContentLoaded', updatePreview);
+        // elements.fotoInput.addEventListener('change', updatePreview);
     </script>
 </body>
 </html>
