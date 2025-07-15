@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Currículo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            min-height: 100vh;
+        }
+
+        .form-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+
+        .preview-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #3498db, #2c3e50);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e6ed;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .photo-upload {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .photo-preview {
+            width: 120px;
+            height: 120px;
+            border: 3px dashed #bdc3c7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .photo-preview:hover {
+            border-color: #3498db;
+        }
+
+        .photo-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-remove {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .photo-preview.has-image .photo-remove {
+            display: flex;
+        }
+
+        .dynamic-section {
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .dynamic-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .add-btn:hover {
+            background: #219a52;
+        }
+
+        .pdf-btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+            transition: transform 0.2s ease;
+            position: sticky;
+            bottom: 20px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .pdf-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Preview Styles */
+        .cv-preview {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .cv-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #3498db;
+        }
+
+        .cv-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-right: 20px;
+            object-fit: cover;
+            border: 3px solid #3498db;
+        }
+
+        .cv-info h2 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .cv-info .position {
+            color: #3498db;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .cv-contact {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .cv-contact span {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .cv-social {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .cv-social a {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .cv-section {
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+        }
+
+        .cv-section h3 {
+            color: #2c3e50;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .cv-item {
+            margin-bottom: 15px;
+            padding-left: 15px;
+            border-left: 3px solid #3498db;
+        }
+
+        .cv-item h4 {
+            color: #34495e;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .cv-item .meta {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .cv-item p {
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .form-section, .preview-section {
+                max-height: none;
+            }
+            
+            .cv-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .cv-photo {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+        }
+
+        /* PDF Styles */
+        @media print {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+            
+            .form-section {
+                display: none;
+            }
+            
+            .preview-section {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-section">
+            <h1>Gerador de Currículo</h1>
+            
+            <div class="form-group">
+                <label>Foto de Perfil</label>
+                <div class="photo-upload">
+                    <div class="photo-preview" onclick="document.getElementById('photoInput').click()">
+                        <span id="photoPlaceholder">Clique para adicionar foto</span>
+                        <button class="photo-remove" onclick="removePhoto(event)">×</button>
+                    </div>
+                    <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="handlePhotoUpload(event)">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="fullName">Nome Completo</label>
+                <input type="text" id="fullName" placeholder="Seu nome completo" oninput="updatePreview()">
+            </div>
+
+            <div class="form-group">
+                <label for="position">Cargo Desejado</label>
+                <input type="text" id="position" placeholder="Ex: Desenvolvedor Full Stack" oninput="updatePreview()">
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Telefone</label>
+                <input type="tel" id="phone" placeholder="(11) 99999-9999" oninput="updatePreview()">
+            </div>
+
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" placeholder="seu.email@exemplo.com" oninput="updatePreview()">
+            </div>
+
+            <div class="form-group">
+                <label for="linkedin">LinkedIn</label>
+                <input type="url" id="linkedin" placeholder="https://linkedin.com/in/seuperfil" oninput="updatePreview()">
+            </div>
+
+            <div class="form-group">
+                <label for="github">GitHub</label>
+                <input type="url" id="github" placeholder="https://github.com/seuusuario" oninput="updatePreview()">
+            </div>
+
+            <div class="form-group">
+                <label for="summary">Resumo Profissional</label>
+                <textarea id="summary" placeholder="Descreva brevemente seu perfil profissional, objetivos e principais competências..." oninput="updatePreview()"></textarea>
+            </div>
+
+            <div class="dynamic-section">
+                <h3>Formação Acadêmica</h3>
+                <div id="educationContainer">
+                    <div class="dynamic-item">
+                        <button class="remove-btn" onclick="removeEducation(this)">×</button>
+                        <div class="form-group">
+                            <label>Curso</label>
+                            <input type="text" class="education-course" placeholder="Ex: Bacharelado em Ciência da Computação" oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Instituição</label>
+                            <input type="text" class="education-institution" placeholder="Nome da instituição" oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Período</label>
+                            <input type="text" class="education-period" placeholder="Ex: 2018 - 2022" oninput="updatePreview()">
+                        </div>
+                    </div>
+                </div>
+                <button class="add-btn" onclick="addEducation()">+ Adicionar Formação</button>
+            </div>
+
+            <div class="dynamic-section">
+                <h3>Experiência Profissional</h3>
+                <div id="experienceContainer">
+                    <div class="dynamic-item">
+                        <button class="remove-btn" onclick="removeExperience(this)">×</button>
+                        <div class="form-group">
+                            <label>Cargo</label>
+                            <input type="text" class="experience-position" placeholder="Ex: Desenvolvedor Frontend" oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Empresa</label>
+                            <input type="text" class="experience-company" placeholder="Nome da empresa" oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Período</label>
+                            <input type="text" class="experience-period" placeholder="Ex: Jan 2020 - Atual" oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Descrição</label>
+                            <textarea class="experience-description" placeholder="Descreva suas principais atividades e conquistas..." oninput="updatePreview()"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <button class="add-btn" onclick="addExperience()">+ Adicionar Experiência</button>
+            </div>
+
+            <div class="dynamic-section">
+                <h3>Qualificações e Cursos</h3>
+                <div id="skillsContainer">
+                    <div class="dynamic-item">
+                        <button class="remove-btn" onclick="removeSkill(this)">×</button>
+                        <div class="form-group">
+                            <label>Título</label>
+                            <input type="text" class="skill-title" placeholder="Ex: Curso de React.js" oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Instituição/Plataforma</label>
+                            <input type="text" class="skill-institution" placeholder="Ex: Udemy, Coursera, etc." oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Ano</label>
+                            <input type="text" class="skill-year" placeholder="Ex: 2023" oninput="updatePreview()">
+                        </div>
+                    </div>
+                </div>
+                <button class="add-btn" onclick="addSkill()">+ Adicionar Qualificação</button>
+            </div>
+
+            <button class="pdf-btn" onclick="generatePDF()">💾 Salvar como PDF</button>
+        </div>
+
+        <div class="preview-section">
+            <div class="cv-preview" id="cvPreview">
+                <div class="cv-header">
+                    <img class="cv-photo" id="previewPhoto" style="display: none;">
+                    <div class="cv-info">
+                        <h2 id="previewName">Seu Nome</h2>
+                        <div class="position" id="previewPosition">Cargo Desejado</div>
+                        <div class="cv-contact">
+                            <span id="previewPhone">Telefone</span>
+                            <span id="previewEmail">E-mail</span>
+                        </div>
+                        <div class="cv-social">
+                            <a href="#" id="previewLinkedIn" style="display: none;">LinkedIn</a>
+                            <a href="#" id="previewGitHub" style="display: none;">GitHub</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cv-section" id="summarySection" style="display: none;">
+                    <h3>Resumo Profissional</h3>
+                    <p id="previewSummary"></p>
+                </div>
+
+                <div class="cv-section" id="educationSection" style="display: none;">
+                    <h3>Formação Acadêmica</h3>
+                    <div id="previewEducation"></div>
+                </div>
+
+                <div class="cv-section" id="experienceSection" style="display: none;">
+                    <h3>Experiência Profissional</h3>
+                    <div id="previewExperience"></div>
+                </div>
+
+                <div class="cv-section" id="skillsSection" style="display: none;">
+                    <h3>Qualificações e Cursos</h3>
+                    <div id="previewSkills"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.querySelector('.photo-preview');
+                    const placeholder = document.getElementById('photoPlaceholder');
+                    const previewPhoto = document.getElementById('previewPhoto');
+                    
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" alt="Foto de perfil">
+                        <button class="photo-remove" onclick="removePhoto(event)">×</button>
+                    `;
+                    preview.classList.add('has-image');
+                    
+                    previewPhoto.src = e.target.result;
+                    previewPhoto.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removePhoto(event) {
+            event.stopPropagation();
+            const preview = document.querySelector('.photo-preview');
+            const photoInput = document.getElementById('photoInput');
+            const previewPhoto = document.getElementById('previewPhoto');
+            
+            preview.innerHTML = '<span id="photoPlaceholder">Clique para adicionar foto</span>';
+            preview.classList.remove('has-image');
+            photoInput.value = '';
+            previewPhoto.style.display = 'none';
+        }
+
+        function addEducation() {
+            const container = document.getElementById('educationContainer');
+            const newEducation = document.createElement('div');
+            newEducation.className = 'dynamic-item';
+            newEducation.innerHTML = `
+                <button class="remove-btn" onclick="removeEducation(this)">×</button>
+                <div class="form-group">
+                    <label>Curso</label>
+                    <input type="text" class="education-course" placeholder="Ex: Bacharelado em Ciência da Computação" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>Instituição</label>
+                    <input type="text" class="education-institution" placeholder="Nome da instituição" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>Período</label>
+                    <input type="text" class="education-period" placeholder="Ex: 2018 - 2022" oninput="updatePreview()">
+                </div>
+            `;
+            container.appendChild(newEducation);
+        }
+
+        function removeEducation(button) {
+            button.parentElement.remove();
+            updatePreview();
+        }
+
+        function addExperience() {
+            const container = document.getElementById('experienceContainer');
+            const newExperience = document.createElement('div');
+            newExperience.className = 'dynamic-item';
+            newExperience.innerHTML = `
+                <button class="remove-btn" onclick="removeExperience(this)">×</button>
+                <div class="form-group">
+                    <label>Cargo</label>
+                    <input type="text" class="experience-position" placeholder="Ex: Desenvolvedor Frontend" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>Empresa</label>
+                    <input type="text" class="experience-company" placeholder="Nome da empresa" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>Período</label>
+                    <input type="text" class="experience-period" placeholder="Ex: Jan 2020 - Atual" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea class="experience-description" placeholder="Descreva suas principais atividades e conquistas..." oninput="updatePreview()"></textarea>
+                </div>
+            `;
+            container.appendChild(newExperience);
+        }
+
+        function removeExperience(button) {
+            button.parentElement.remove();
+            updatePreview();
+        }
+
+        function addSkill() {
+            const container = document.getElementById('skillsContainer');
+            const newSkill = document.createElement('div');
+            newSkill.className = 'dynamic-item';
+            newSkill.innerHTML = `
+                <button class="remove-btn" onclick="removeSkill(this)">×</button>
+                <div class="form-group">
+                    <label>Título</label>
+                    <input type="text" class="skill-title" placeholder="Ex: Curso de React.js" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>Instituição/Plataforma</label>
+                    <input type="text" class="skill-institution" placeholder="Ex: Udemy, Coursera, etc." oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>Ano</label>
+                    <input type="text" class="skill-year" placeholder="Ex: 2023" oninput="updatePreview()">
+                </div>
+            `;
+            container.appendChild(newSkill);
+        }
+
+        function removeSkill(button) {
+            button.parentElement.remove();
+            updatePreview();
+        }
+
+        function updatePreview() {
+            // Informações básicas
+            const name = document.getElementById('fullName').value || 'Seu Nome';
+            const position = document.getElementById('position').value || 'Cargo Desejado';
+            const phone = document.getElementById('phone').value || 'Telefone';
+            const email = document.getElementById('email').value || 'E-mail';
+            const linkedin = document.getElementById('linkedin').value;
+            const github = document.getElementById('github').value;
+            const summary = document.getElementById('summary').value;
+
+            document.getElementById('previewName').textContent = name;
+            document.getElementById('previewPosition').textContent = position;
+            document.getElementById('previewPhone').textContent = phone;
+            document.getElementById('previewEmail').textContent = email;
+
+            // Links sociais
+            const linkedinLink = document.getElementById('previewLinkedIn');
+            const githubLink = document.getElementById('previewGitHub');
+
+            if (linkedin) {
+                linkedinLink.href = linkedin;
+                linkedinLink.style.display = 'block';
+            } else {
+                linkedinLink.style.display = 'none';
+            }
+
+            if (github) {
+                githubLink.href = github;
+                githubLink.style.display = 'block';
+            } else {
+                githubLink.style.display = 'none';
+            }
+
+            // Resumo
+            const summarySection = document.getElementById('summarySection');
+            const previewSummary = document.getElementById('previewSummary');
+            if (summary) {
+                previewSummary.textContent = summary;
+                summarySection.style.display = 'block';
+            } else {
+                summarySection.style.display = 'none';
+            }
+
+            // Formação
+            updateEducationPreview();
+            updateExperiencePreview();
+            updateSkillsPreview();
+        }
+
+        function updateEducationPreview() {
+            const educationItems = document.querySelectorAll('#educationContainer .dynamic-item');
+            const previewEducation = document.getElementById('previewEducation');
+            const educationSection = document.getElementById('educationSection');
+            
+            let html = '';
+            let hasContent = false;
+
+            educationItems.forEach(item => {
+                const course = item.querySelector('.education-course').value;
+                const institution = item.querySelector('.education-institution').value;
+                const period = item.querySelector('.education-period').value;
+
+                if (course || institution || period) {
+                    hasContent = true;
+                    html += `
+                        <div class="cv-item">
+                            <h4>${course || 'Curso'}</h4>
+                            <div class="meta">${institution || 'Instituição'} • ${period || 'Período'}</div>
+                        </div>
+                    `;
+                }
+            });
+
+            previewEducation.innerHTML = html;
+            educationSection.style.display = hasContent ? 'block' : 'none';
+        }
+
+        function updateExperiencePreview() {
+            const experienceItems = document.querySelectorAll('#experienceContainer .dynamic-item');
+            const previewExperience = document.getElementById('previewExperience');
+            const experienceSection = document.getElementById('experienceSection');
+            
+            let html = '';
+            let hasContent = false;
+
+            experienceItems.forEach(item => {
+                const position = item.querySelector('.experience-position').value;
+                const company = item.querySelector('.experience-company').value;
+                const period = item.querySelector('.experience-period').value;
+                const description = item.querySelector('.experience-description').value;
+
+                if (position || company || period || description) {
+                    hasContent = true;
+                    html += `
+                        <div class="cv-item">
+                            <h4>${position || 'Cargo'}</h4>
+                            <div class="meta">${company || 'Empresa'} • ${period || 'Período'}</div>
+                            ${description ? `<p>${description}</p>` : ''}
+                        </div>
+                    `;
+                }
+            });
+
+            previewExperience.innerHTML = html;
+            experienceSection.style.display = hasContent ? 'block' : 'none';
+        }
+
+        function updateSkillsPreview() {
+            const skillItems = document.querySelectorAll('#skillsContainer .dynamic-item');
+            const previewSkills = document.getElementById('previewSkills');
+            const skillsSection = document.getElementById('skillsSection');
+            
+            let html = '';
+            let hasContent = false;
+
+            skillItems.forEach(item => {
+                const title = item.querySelector('.skill-title').value;
+                const institution = item.querySelector('.skill-institution').value;
+                const year = item.querySelector('.skill-year').value;
+
+                if (title || institution || year) {
+                    hasContent = true;
+                    html += `
+                        <div class="cv-item">
+                            <h4>${title || 'Título'}</h4>
+                            <div class="meta">${institution || 'Instituição'} • ${year || 'Ano'}</div>
+                        </div>
+                    `;
+                }
+            });
+
+            previewSkills.innerHTML = html;
+            skillsSection.style.display = hasContent ? 'block' : 'none';
+        }
+
+        function generatePDF() {
+            const element = document.getElementById('cvPreview');
+            const opt = {
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: 'curriculo.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    letterRendering: true
+                },
+                jsPDF: { 
+                    unit: 'in', 
+                    format: 'a4', 
+                    orientation: 'portrait' 
+                },
+                pagebreak: { 
+                    mode: ['avoid-all', 'css', 'legacy'],
+                    before: '.cv-section',
+                    after: '.cv-section'
+                }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+
+        // Inicializar preview
+        updatePreview();
+    </script>
+</body>
+</html>
